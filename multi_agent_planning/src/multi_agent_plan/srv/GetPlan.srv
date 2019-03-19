@@ -1,0 +1,4 @@
+string serial_id
+geometry_msgs/Pose2D goal_pose
+---
+geometry_msgs/Pose2D[] path

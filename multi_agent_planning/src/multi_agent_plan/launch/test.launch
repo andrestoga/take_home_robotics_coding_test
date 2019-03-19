@@ -1,0 +1,23 @@
+<launch>
+
+  <group ns="agent_1">
+    <node pkg="multi_agent_plan" name="agent" type="multi_agent_node" output="screen">
+    <param name="serial_id" type="str" value="agent_1" />
+    <param name="x" type="double" value="2" />
+    <param name="y" type="double" value="0" />
+    <param name="theta" type="double" value="0" />
+    </node>
+  </group>
+
+  <group ns="agent_2">
+    <node pkg="multi_agent_plan" name="agent" type="multi_agent_node" output="screen">
+    <param name="serial_id" type="str" value="agent_2" />
+    <param name="x" type="double" value="0" />
+    <param name="y" type="double" value="3" />
+    <param name="theta" type="double" value="0" />
+  </node>
+  </group>
+
+  <node pkg="multi_agent_plan" name="planner" type="planner_node" output="screen"/>
+
+</launch>

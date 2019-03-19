@@ -1,0 +1,16 @@
+# machine info
+# ============
+
+front_wheel_radius_meters = 0.1250
+back_wheels_radius_meters = 0.1250
+distance_from_front_wheel_back_axis = 0.964
+distance_between_rear_wheels = 0.3673
+ticks_per_rev = 35136
+
+# dataset info
+# ============
+# CSV elements per row
+# time: in seconds
+# encoder_values: 32-bit traction encoder values
+# angular_velocity: angular velocity (filtered)
+# steering_angle: steering angle in radians

@@ -1,0 +1,25 @@
+<launch>
+
+  <!-- <group ns="turtlesim1">
+    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+  </group>
+
+  <group ns="turtlesim2">
+    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+  </group>
+
+  <node pkg="turtlesim" name="mimic" type="mimic">
+    <remap from="input" to="turtlesim1/turtle1"/>
+    <remap from="output" to="turtlesim2/turtle1"/>
+  </node> -->
+
+    <!-- Set parameters -->
+  <param name="base_width" value="2.0"/>
+  <param name="ticks_per_meter" value="2626"/>
+  <param name="fixed_frecuency" value="10"/>
+  <param name="min_ticks" value="10"/>
+  <param name="max_ticks" value="16777216"/>
+
+  <node pkg="farmwise_odom" name="odom" type="pose_est.py" output="screen"/>
+
+</launch>

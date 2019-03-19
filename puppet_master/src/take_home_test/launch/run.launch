@@ -1,0 +1,12 @@
+<launch>
+	<node name = "turtlesim" pkg = "turtlesim" type = "turtlesim_node" required = "true" />
+	<node name = "puppet_master" pkg = "take_home_test" type = "puppet_master" required = "true" output = "screen">
+		<remap from="turtle_pose" to="/turtle1/pose" />
+	</node>
+
+	<node name = "turtle_action_node" pkg = "turtle_action" type = "turtle_action_node" required = "true" output = "screen">
+		<remap from="turtle_pose" to="/turtle1/pose" />
+		<remap from="turtle_cmd" to="/turtle1/cmd_vel" />
+	</node>
+	
+</launch>
