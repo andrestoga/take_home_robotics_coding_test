@@ -39,27 +39,11 @@ namespace multi_agent_plan
 
 	class Planner
 	{
-		bool is_curr_pose_ready_;
-	    geometry_msgs::Pose2D start_pose_;
+		// Access specifier 
+		public:
+
 	    // std::map<geometry_msgs::Pose2D, std::map<geometry_msgs::Pose2D, std::vector<geometry_msgs::Pose2D>>> saved_paths_;
 	    std::map<Coord2D, std::map<Coord2D, std::vector<geometry_msgs::Pose2D>>> saved_paths_;// Map used to store 
-
-	    /**
-	     * @brief      Calculates the path.
-	     *
-	     * @param      req   The request: serial id and the goal pose
-	     * @param      res   The response: the path
-	     *
-	     * @return     Return true
-	     */
-	    bool computePath(multi_agent_plan::GetPlan::Request  &req,
-         multi_agent_plan::GetPlan::Response &res);
-	    /**
-	     * @brief      Gets the agent pose.
-	     *
-	     * @param[in]  msg   The message containing the agent pose
-	     */
-	    void getAgentPose(const multi_agent_plan::CurrPose::ConstPtr& msg);
 	    /**
 	     * @brief      Plan for manhattan worlds with no obstacles. By using this algorithm all the paths will have L or | shape depending on the x and y coordinates.
 	     *
@@ -67,18 +51,10 @@ namespace multi_agent_plan
 	     *
 	     * @return     the series of poses to move to reach the goal
 	     */
-	    std::vector<geometry_msgs::Pose2D> manhattanPlanning( geometry_msgs::Pose2D goal );
-
-
-		// Access specifier 
-		public:
+	    std::vector<geometry_msgs::Pose2D> manhattanPlanning( geometry_msgs::Pose2D start_pose, geometry_msgs::Pose2D goal );
 
 	    // Data Members
 	    Map grid_;
-
-		ros::ServiceServer plan_service_;
-		ros::Subscriber curr_pose_sub_;
-		ros::NodeHandle nh_;
 	  
 	  	/**
 	  	 * @brief      Constructs the object.
@@ -86,7 +62,7 @@ namespace multi_agent_plan
 	  	 * @param[in]  nh    node handle
 	  	 * @param[in]  grid  The grid
 	  	 */
-	    Planner(const ros::NodeHandle& nh, const Map& grid);
+	    Planner(const Map& grid);
 
 	};
 }

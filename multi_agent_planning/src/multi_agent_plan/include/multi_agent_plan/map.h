@@ -21,9 +21,9 @@ namespace multi_agent_plan
 		/**
 		 * @brief      Deallocates the map
 		 */
-		~Map();
+		// ~Map();
 		
-		int* grid_; // The map representation of the square map.
+		std::vector<int> grid_; // The map representation of the square map.
 		const int m_;
 		const int n_;
 	};	

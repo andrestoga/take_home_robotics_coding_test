@@ -143,23 +143,25 @@ catkin_package(
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 set(multi_agent_node_SRCS
+  src/map.cpp
   src/agent.cpp
   src/agent_node.cpp
-  src/map.cpp
+  src/agent_node_app.cpp
 )
 
 set(multi_agent_node_HDRS
-  include/multi_agent_plan/agent.h
+  include/multi_agent_plan/agent_node.h
 )
 
 set(planner_node_SRCS
-  src/planner.cpp
+  src/manhattan_planner.cpp
   src/planner_node.cpp
+  src/planner_node_app.cpp
   src/map.cpp
 )
 
 set(planner_node_HDRS
-  include/multi_agent_plan/planner.h
+  include/multi_agent_plan/planner_node.h
 )
 
 ## Declare a C++ executable
@@ -229,9 +231,25 @@ target_link_libraries(planner_node
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_multi_agent_plan.cpp)
+
 # if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} ${catkin_LIBRARIES} )
+
+#   add_dependencies(
+#     ${PROJECT_NAME}-test
+#     ${PROJECT_NAME}
+#     ${catkin_EXPORTED_TARGETS}
+#   )
+
 # endif()
+
+if(CATKIN_ENABLE_TESTING)
+  message("\n\nGoing to build the tests!\n\n")
+  find_package(rostest REQUIRED)
+  # add_rostest_gtest(my_unit_test launch/node_launcher.launch test/MyClass_test.cpp)
+  catkin_add_gtest(${PROJECT_NAME}-test test/test_multi_agent_plan.cpp src/manhattan_planner.cpp src/agent.cpp src/map.cpp )
+  target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES})
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

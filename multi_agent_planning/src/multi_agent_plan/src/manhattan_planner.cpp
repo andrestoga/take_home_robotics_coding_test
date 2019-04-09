@@ -1,21 +1,20 @@
-/* planner.cpp
- * Andres Torres Garcia (andrestoga@gmail.com)
- */
-#include "multi_agent_plan/planner.h"
+/*
+* @Author: Andres
+* @Date:   2019-03-01 21:26:06
+* @Last Modified by:   Andres
+* @Last Modified time: 2019-03-01 22:13:43
+*/
+
+#include "multi_agent_plan/manhattan_planner.hpp"
 
 namespace multi_agent_plan
 {
-	// bool operator<(const geometry_msgs::Pose2D& l, const geometry_msgs::Pose2D& r)
-	// {
-	//     return ( l.x < r.x || ( l.x == r.x && l.y < r.y ) );
-	// }
-
-	Planner::Planner(const Map& grid)
-	: grid_(grid)
+	ManhattanPlanner::ManhattanPlanner(const Map& grid)
+	: Planner2D(grid)
 	{
 	}
 
-	std::vector<geometry_msgs::Pose2D> Planner::manhattanPlanning( geometry_msgs::Pose2D start_pose, geometry_msgs::Pose2D goal )
+	std::vector<geometry_msgs::Pose2D> ManhattanPlanner::pathPlanning( geometry_msgs::Pose2D start_pose, geometry_msgs::Pose2D goal )
 	{
 		std::vector<geometry_msgs::Pose2D> path;
 

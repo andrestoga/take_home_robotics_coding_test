@@ -9,11 +9,10 @@ namespace multi_agent_plan
 	: m_(m)
 	, n_(n)
 	{
-		grid_ = new int[n * n];
+		grid_.resize( m * n );
 	}
 
-	Map::~Map()
-	{
-		delete [] grid_;
-	}
+	// Map::~Map()
+	// {
+	// }
 }
