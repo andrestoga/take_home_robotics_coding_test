@@ -244,11 +244,20 @@ target_link_libraries(planner_node
 # endif()
 
 if(CATKIN_ENABLE_TESTING)
-  message("\n\nGoing to build the tests!\n\n")
+  message("\n\nGoing to build the rostest!\n\n")
   find_package(rostest REQUIRED)
-  # add_rostest_gtest(my_unit_test launch/node_launcher.launch test/MyClass_test.cpp)
-  catkin_add_gtest(${PROJECT_NAME}-test test/test_multi_agent_plan.cpp src/manhattan_planner.cpp src/agent.cpp src/map.cpp )
-  target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES})
+  add_rostest_gtest(ros_testing_agent_planner test/ros_testing_agent_planner.launch test/ros_testing_agent_planner.cpp)
+  target_link_libraries(ros_testing_agent_planner ${catkin_LIBRARIES})
+  add_dependencies(
+    ros_testing_agent_planner
+    multi_agent_node
+    planner_node
+    ${PROJECT_NAME}_generate_messages_cpp
+    ${catkin_EXPORTED_TARGETS}
+  )
+
+  # catkin_add_gtest(${PROJECT_NAME}-test test/test_multi_agent_plan.cpp src/manhattan_planner.cpp src/agent.cpp src/map.cpp )
+  # target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES})
 endif()
 
 ## Add folders to be run by python nosetests

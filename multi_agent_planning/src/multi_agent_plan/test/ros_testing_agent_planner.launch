@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node pkg="multi_agent_plan" name="planner" type="planner_node" output="screen"/>
+  
+  <group ns="agent_1">
+
+    <node pkg="multi_agent_plan" name="agent" type="multi_agent_node" output="screen">
+      <param name="serial_id" type="str" value="agent_1" />
+      <param name="x" type="double" value="0" />
+      <param name="y" type="double" value="2" />
+      <param name="theta" type="double" value="0" />
+    </node>
+
+    <test pkg="multi_agent_plan" type="ros_testing_agent_planner" test-name="ros_testing_agent_planner" />
+  </group>
+
+</launch>

@@ -19,7 +19,9 @@ namespace multi_agent_plan
 			std::unique_ptr<Agent> ag_;
 			
 			ros::Publisher pose_pub_;
+			ros::Publisher moving_pub_;
 			ros::ServiceServer goal_service_;
+			ros::ServiceServer update_pose_srv_;
 			ros::ServiceClient planner_client_;
 			ros::Publisher path_pub_;
 
@@ -55,8 +57,10 @@ namespace multi_agent_plan
 	  	     *
 	  	     * @return     Return true when it's done
 	  	     */
-	      	bool updateGoal( multi_agent_plan::UpdateGoal::Request  &req,
+	      	bool updateGoal( multi_agent_plan::UpdateGoal::Request &req,
 	  	             multi_agent_plan::UpdateGoal::Response &res );
+
+	      	bool updatePose( multi_agent_plan::UpdateGoal::Request &req, multi_agent_plan::UpdateGoal::Response &res );
 
 	      	/**
 	      	 * @brief      Display the movement of the robot on RViz using the given path
@@ -74,6 +78,8 @@ namespace multi_agent_plan
 	      	void getPlan();
 
   			void update();
+
+  			void updatePose();
 
 	};
 }

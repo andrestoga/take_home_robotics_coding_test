@@ -47,6 +47,7 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <test_depend>gtest</test_depend>
   <test_depend>rosunit</test_depend>
+  <test_depend>rostest</test_depend>
 
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
@@ -70,7 +71,6 @@
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>message_generation</exec_depend>
-
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

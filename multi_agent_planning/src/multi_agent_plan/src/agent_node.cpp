@@ -3,12 +3,16 @@
  */
 #include "multi_agent_plan/agent.h"
 #include "multi_agent_plan/agent_node.h"
-#include <multi_agent_plan/map.h>
+// #include <multi_agent_plan/map.h>
+#include "multi_agent_plan/map.h"
 
 #include <visualization_msgs/Marker.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
+
+#include <std_msgs/Bool.h>
+#include <std_msgs/Float32.h>
 
 #include <math.h>
 
@@ -18,10 +22,12 @@ namespace multi_agent_plan
   : nh_(nh)
   , is_agent_moving_(false)
   , i_path_(1)
-  , move_duration_( 10.0 )
+  , move_duration_( 1.0 )
   {
     pose_pub_ = nh_.advertise<multi_agent_plan::CurrPose>("agent_feedback", 1000);
+    moving_pub_ = nh_.advertise<std_msgs::Bool>("is_moving", 1000);
     goal_service_ = nh_.advertiseService("update_goal", &AgentNode::updateGoal, this );
+    update_pose_srv_ = nh_.advertiseService("update_pose", &AgentNode::updatePose, this );
     planner_client_ = nh_.serviceClient<multi_agent_plan::GetPlan>("/get_plan");
     path_pub_ = nh_.advertise<visualization_msgs::Marker>("visualization_path", 10);
 
@@ -72,6 +78,15 @@ namespace multi_agent_plan
     ag_ = std::unique_ptr<Agent>( new Agent( pose, serial_id, map ) );
   }
 
+  bool AgentNode::updatePose( multi_agent_plan::UpdateGoal::Request  &req, multi_agent_plan::UpdateGoal::Response &res )
+  {
+    ag_->curr_pose_.x = req.new_goal.x;
+    ag_->curr_pose_.y = req.new_goal.y;
+    ag_->curr_pose_.theta = req.new_goal.theta;
+
+    return true;
+  }
+
   bool AgentNode::updateGoal( multi_agent_plan::UpdateGoal::Request  &req,
     multi_agent_plan::UpdateGoal::Response &res )
   {
@@ -88,26 +103,26 @@ namespace multi_agent_plan
     return true;
   }
 
-    void AgentNode::getPlan()
+  void AgentNode::getPlan()
+  {
+    multi_agent_plan::GetPlan srv;
+
+    srv.request.serial_id = ag_->serial_id_; 
+    srv.request.goal_pose.x = ag_->goal_pose_.x;
+    srv.request.goal_pose.y = ag_->goal_pose_.y;
+    srv.request.goal_pose.theta = ag_->goal_pose_.theta;
+
+    if (planner_client_.call(srv))
     {
-      multi_agent_plan::GetPlan srv;
-
-      srv.request.serial_id = ag_->serial_id_; 
-      srv.request.goal_pose.x = ag_->goal_pose_.x;
-      srv.request.goal_pose.y = ag_->goal_pose_.y;
-      srv.request.goal_pose.theta = ag_->goal_pose_.theta;
-
-      if (planner_client_.call(srv))
-      {
-        ag_->last_path_ = srv.response.path;
-        ROS_INFO_STREAM( "Plan received with size: " << ag_->last_path_.size() );
-      }
-      else
-      {
-        ROS_ERROR("Failed to call service get_plan");
-        return;
-      }
+      ag_->last_path_ = srv.response.path;
+      ROS_INFO_STREAM( "Plan received with size: " << ag_->last_path_.size() );
     }
+    else
+    {
+      ROS_ERROR("Failed to call service get_plan");
+      return;
+    }
+  }
 
   bool AgentNode::followPathPlan()
   {
@@ -118,7 +133,7 @@ namespace multi_agent_plan
       {
         if ( i_path_ < ag_->last_path_.size() )
         {
-          ROS_INFO_STREAM( "Agent moving every 10 seconds." );
+          ROS_INFO( "Agent moving every %f seconds.", move_duration_.toSec() );
           ROS_INFO_STREAM( "Current position: " << ag_->last_path_[ i_path_ ] );
           ag_->curr_pose_.x = ag_->last_path_[ i_path_ ].x;
           ag_->curr_pose_.y = ag_->last_path_[ i_path_ ].y;
@@ -203,5 +218,25 @@ namespace multi_agent_plan
     publishCurrPose();
     followPathPlan();
     displayPathOnRviz();
+
+    if ( is_agent_moving_ )
+    {
+      std_msgs::Bool b;
+      b.data = true;
+      moving_pub_.publish( b );
+    }
+    else
+    {
+     std_msgs::Bool b;
+      b.data = false;
+      moving_pub_.publish( b );
+    }
   }
+
+  // void updatePose()
+  // {
+  //   ros::param::param<std::Float32>("pose/x", ag_->curr_pose_.x, 0.0);
+  //   ros::param::param<std::Float32>("pose/y", ag_->curr_pose_.y, 0.0);
+  //   ros::param::param<std::Float32>("pose/theta", ag_->curr_pose_.theta, 0.0);
+  // }
 }
