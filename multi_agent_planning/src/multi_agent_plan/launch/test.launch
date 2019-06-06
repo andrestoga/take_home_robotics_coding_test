@@ -1,23 +1,32 @@
 <launch>
 
+  <arg name="map_file" default="$(find multi_agent_plan)/test/testmap.yaml"/>
+
+  <param name="width" type="int" value="10" />
+  <param name="height" type="int" value="10" />
+
   <group ns="agent_1">
     <node pkg="multi_agent_plan" name="agent" type="multi_agent_node" output="screen">
-    <param name="serial_id" type="str" value="agent_1" />
-    <param name="x" type="double" value="2" />
-    <param name="y" type="double" value="0" />
-    <param name="theta" type="double" value="0" />
+      <param name="serial_id" type="str" value="agent_1" />
+      <param name="x" type="double" value="2" />
+      <param name="y" type="double" value="0" />
+      <param name="theta" type="double" value="0" />
     </node>
   </group>
 
   <group ns="agent_2">
     <node pkg="multi_agent_plan" name="agent" type="multi_agent_node" output="screen">
-    <param name="serial_id" type="str" value="agent_2" />
-    <param name="x" type="double" value="0" />
-    <param name="y" type="double" value="3" />
-    <param name="theta" type="double" value="0" />
-  </node>
+      <param name="serial_id" type="str" value="agent_2" />
+      <param name="x" type="double" value="0" />
+      <param name="y" type="double" value="3" />
+      <param name="theta" type="double" value="0" />
+    </node>
   </group>
 
-  <node pkg="multi_agent_plan" name="planner" type="planner_node" output="screen"/>
+  <node pkg="multi_agent_plan" name="planner" type="planner_node" output="screen">
+    <param name="is_server_map" type="bool" value="true" />
+  </node>
+
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)" output="screen" />
 
 </launch>

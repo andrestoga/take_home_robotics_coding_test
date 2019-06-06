@@ -6,30 +6,12 @@
 #define AGENT_H
 
 #include "geometry_msgs/Pose2D.h"
-#include "geometry_msgs/Point.h"
 #include "ros/ros.h"
-#include "map.h"
-#include "multi_agent_plan/CurrPose.h"
-#include "multi_agent_plan/UpdateGoal.h"
-#include "multi_agent_plan/GetPlan.h"
 
 namespace multi_agent_plan
 {
 	class Agent
-	{
-		// Data Members
-		geometry_msgs::Pose2D curr_pose_;
-		std::string serial_id_;
-		Map grid_;
-		geometry_msgs::Pose2D goal_pose_;
-		std::vector<geometry_msgs::Pose2D> last_path_;
-
-		ros::NodeHandle nh_;
-		ros::Publisher pose_pub_;
-		ros::ServiceServer goal_service_;
-		ros::ServiceClient planner_client_;
-		ros::Publisher path_pub_;
-		
+	{	
 		// Access specifier 
 		public:
 
@@ -41,36 +23,7 @@ namespace multi_agent_plan
 			 * @param[in]  serial_id  The serial identifier
 			 * @param[in]  grid       The grid
 			 */
-			Agent(const ros::NodeHandle& nh, geometry_msgs::Pose2D curr_pose, std::string serial_id, const Map& grid );
-		  
-		  	/**
-		  	 * @brief      Updates the position of the agent
-		  	 *
-		  	 * @return     Return true when it's done
-		  	 */
-		    bool moveAgent();
-		    /**
-		     * @brief      Callback function to update an agent's goal. After updating its goal, it will call a service to get a path for the new goal and move an agent through that path.
-		     *
-		     * @param      req   The request
-		     * @param      res   The response
-		     *
-		     * @return     Return true when it's done
-		     */
-	    	bool updateGoal( multi_agent_plan::UpdateGoal::Request  &req,
-		             multi_agent_plan::UpdateGoal::Response &res );
-	    	/**
-	    	 * @brief      Display the movement of the robot on RViz using the given path
-	    	 */
-	    	void displayPathOnRviz();
-	    	/**
-	    	 * @brief      Publish the current pose and its transformation of the agent with respect to the origin
-	    	 */
-	    	void publishCurrPose();
-	    	/**
-	    	 * @brief      Get the of an agent depending of its current pose and its new goal.
-	    	 */
-	    	void getPlan();
+			Agent( geometry_msgs::Pose2D pose, std::string serial_id );
 	    	/**
 	    	 * @brief      Transform the points from the grid to the Gazebo grid
 	    	 *
@@ -80,9 +33,26 @@ namespace multi_agent_plan
 	    	 * @return     The transformed point
 	    	 */
 	    	geometry_msgs::Pose2D transformPointsToWd( geometry_msgs::Pose2D point, float offset );
-	    	geometry_msgs::Pose2D checkPose( geometry_msgs::Pose2D pose );
+	    	/**
+	    	 * @brief      Check that the pose is inside the limits of the map
+	    	 *
+	    	 * @param[in]  pose  The pose to check
+	    	 *
+	    	 * @return     Return a valid pose. If the input pose was not inside the limits of the map, the pose will be 0, 0, 0. Otherwise, it will be the input pose.
+	    	 */
+	    	// geometry_msgs::Pose2D checkPose( geometry_msgs::Pose2D pose, int width, int height );
+	    	void setPose( geometry_msgs::Pose2D pose );
+	    	
+	    	geometry_msgs::Pose2D getPose() const;
 
+	    // protected:
+	    	geometry_msgs::Pose2D pose_;
 
+	    	// Data Members
+	    	std::string serial_id_;
+	    	
+	    	geometry_msgs::Pose2D goal_pose_;
+	    	std::vector<geometry_msgs::Pose2D> last_path_;
 	};
 }
 
