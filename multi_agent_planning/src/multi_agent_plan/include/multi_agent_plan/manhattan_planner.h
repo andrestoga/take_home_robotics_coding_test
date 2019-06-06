@@ -1,20 +1,21 @@
-#ifndef MANHATTAN_PLANNER_HPP
-#define MANHATTAN_PLANNER_HPP
+#ifndef MANHATTAN_PLANNER_H
+#define MANHATTAN_PLANNER_H
 
 #include "geometry_msgs/Pose2D.h"
 #include "multi_agent_plan/GetPlan.h"
-#include "multi_agent_plan/CurrPose.h"
+#include "multi_agent_plan/Pose.h"
 #include "ros/ros.h"
-#include "map.h"
 
-#include "multi_agent_plan/planner_2d.hpp"
+#include "multi_agent_plan/planner_2d.h"
 
 namespace multi_agent_plan
 {
 	class ManhattanPlanner: public Planner2D
 	{
 	public:
-		ManhattanPlanner( const Map& grid );
+
+		ManhattanPlanner( int width, int height );
+		ManhattanPlanner(){}
 
 		/**
 		 * @brief      Plan for manhattan worlds with no obstacles. By using this algorithm all the paths will have L or | shape depending on the x and y coordinates.

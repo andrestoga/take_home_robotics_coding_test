@@ -6,7 +6,7 @@
 #define AGENT_H
 
 #include "geometry_msgs/Pose2D.h"
-#include "map.h"
+#include "ros/ros.h"
 
 namespace multi_agent_plan
 {
@@ -23,7 +23,7 @@ namespace multi_agent_plan
 			 * @param[in]  serial_id  The serial identifier
 			 * @param[in]  grid       The grid
 			 */
-			Agent( geometry_msgs::Pose2D curr_pose, std::string serial_id, const Map& grid );
+			Agent( geometry_msgs::Pose2D pose, std::string serial_id );
 	    	/**
 	    	 * @brief      Transform the points from the grid to the Gazebo grid
 	    	 *
@@ -40,12 +40,16 @@ namespace multi_agent_plan
 	    	 *
 	    	 * @return     Return a valid pose. If the input pose was not inside the limits of the map, the pose will be 0, 0, 0. Otherwise, it will be the input pose.
 	    	 */
-	    	geometry_msgs::Pose2D checkPose( geometry_msgs::Pose2D pose );
+	    	// geometry_msgs::Pose2D checkPose( geometry_msgs::Pose2D pose, int width, int height );
+	    	void setPose( geometry_msgs::Pose2D pose );
+	    	
+	    	geometry_msgs::Pose2D getPose() const;
+
+	    // protected:
+	    	geometry_msgs::Pose2D pose_;
 
 	    	// Data Members
-	    	geometry_msgs::Pose2D curr_pose_;
 	    	std::string serial_id_;
-	    	Map grid_;
 	    	
 	    	geometry_msgs::Pose2D goal_pose_;
 	    	std::vector<geometry_msgs::Pose2D> last_path_;

@@ -6,31 +6,36 @@
 
 namespace multi_agent_plan
 {
-	Agent::Agent(geometry_msgs::Pose2D curr_pose, std::string serial_id, const Map& grid )
+	Agent::Agent(geometry_msgs::Pose2D pose, std::string serial_id )
 	: serial_id_( serial_id )
-	, grid_( grid.m_, grid.n_ )
 	{
-		curr_pose_ = checkPose( curr_pose );
+		setPose( pose );
 	}
 
-	geometry_msgs::Pose2D Agent::checkPose( geometry_msgs::Pose2D pose )
+	geometry_msgs::Pose2D Agent::getPose() const
 	{
-		if ( pose.x > grid_.n_ || pose.x < 0.0 )
-		{
-			pose.x = 0.0;
-		}
+		return pose_;
+	}
 
-		if ( pose.y > grid_.n_ || pose.y < 0.0 )
-		{
-			pose.y = 0.0;	
-		}
+	void Agent::setPose( geometry_msgs::Pose2D pose )
+	{
 
-		if ( pose.theta > M_PI || pose.theta < -M_PI )
-		{
-			pose.theta = 0.0;	
-		}
+		pose_ = pose;
 
-		return pose;
+		// if ( pose.x > width || pose.x < 0.0 )
+		// {
+		// 	pose_.x = 0.0;
+		// }
+
+		// if ( pose.y > height || pose.y < 0.0 )
+		// {
+		// 	pose_.y = 0.0;
+		// }
+
+		// if ( pose.theta > M_PI || pose.theta < -M_PI )
+		// {
+		// 	pose_.theta = 0.0;	
+		// }
 	}
 
 	geometry_msgs::Pose2D Agent::transformPointsToWd( geometry_msgs::Pose2D point,float offset )

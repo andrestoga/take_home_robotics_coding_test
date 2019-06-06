@@ -6,8 +6,8 @@
  */
 #include "multi_agent_plan/agent.h"
 #include <math.h>
-#include "multi_agent_plan/CurrPose.h"
-#include "multi_agent_plan/UpdateGoal.h"
+#include "multi_agent_plan/Pose.h"
+#include "multi_agent_plan/Set2DPose.h"
 #include "multi_agent_plan/GetPlan.h"
 
 namespace multi_agent_plan
@@ -57,10 +57,10 @@ namespace multi_agent_plan
 	  	     *
 	  	     * @return     Return true when it's done
 	  	     */
-	      	bool updateGoal( multi_agent_plan::UpdateGoal::Request &req,
-	  	             multi_agent_plan::UpdateGoal::Response &res );
+	      	bool updateGoal( multi_agent_plan::Set2DPose::Request &req,
+	  	             multi_agent_plan::Set2DPose::Response &res );
 
-	      	bool updatePose( multi_agent_plan::UpdateGoal::Request &req, multi_agent_plan::UpdateGoal::Response &res );
+	      	bool updatePose( multi_agent_plan::Set2DPose::Request &req, multi_agent_plan::Set2DPose::Response &res );
 
 	      	/**
 	      	 * @brief      Display the movement of the robot on RViz using the given path
@@ -70,7 +70,7 @@ namespace multi_agent_plan
 	      	/**
 	      	 * @brief      Publish the current pose and its transformation of the agent with respect to the origin
 	      	 */
-	      	void publishCurrPose();
+	      	void publishPose();
 
 	      	/**
 	      	 * @brief      Get the plan depending on the current pose and the new goal.
@@ -80,6 +80,9 @@ namespace multi_agent_plan
   			void update();
 
   			void updatePose();
+
+  			void getMapSize( int& width, int& height );
+
 
 	};
 }

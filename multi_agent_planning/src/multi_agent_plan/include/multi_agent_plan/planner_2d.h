@@ -1,11 +1,11 @@
-#ifndef PLANNER_2D_HPP
-#define PLANNER_2D_HPP
+#ifndef PLANNER_2D_H
+#define PLANNER_2D_H
 
 #include "geometry_msgs/Pose2D.h"
 #include "multi_agent_plan/GetPlan.h"
-#include "multi_agent_plan/CurrPose.h"
+#include "multi_agent_plan/Pose.h"
 #include "ros/ros.h"
-#include "map.h"
+#include "cell.h"
 
 namespace multi_agent_plan
 {
@@ -37,18 +37,32 @@ namespace multi_agent_plan
 	class Planner2D
 	{
 	public:
-		Planner2D(const Map& grid)
-		: grid_(grid.m_, grid.n_)
+
+		int width_;
+		int height_;
+
+		Planner2D( int width, int height )
+		: width_( width )
+		, height_( height )
 		{
 
 		}
 
-	    std::map<Coord2D, std::map<Coord2D, std::vector<geometry_msgs::Pose2D>>> saved_paths_;// Map used to store
+		Planner2D(){}
+
+		virtual ~Planner2D()
+		{}
+		
+	    std::map<Coord2D, std::map<Coord2D, std::vector<geometry_msgs::Pose2D>>> saved_paths_;// Map used to store previous queries.
 
 	    /**
 	     * 2D grid map
 	     */
-	    Map grid_;
+
+	    /**
+	     * grid_ Map to plan
+	     */
+	    // Map<T> grid_;
 
 		/**
 		 * @brief      Pure function to be implemented in derived classes for planners in 2D
@@ -60,7 +74,6 @@ namespace multi_agent_plan
 		 */
 	    virtual std::vector<geometry_msgs::Pose2D> pathPlanning( geometry_msgs::Pose2D start_pose, geometry_msgs::Pose2D goal ) = 0;
 	};
-
 }
 
 #endif

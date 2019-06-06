@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
+  <param name="width" type="int" value="10" />
+  <param name="height" type="int" value="10" />
+
   <node pkg="multi_agent_plan" name="planner" type="planner_node" output="screen"/>
   
   <group ns="agent_1">
@@ -13,6 +16,7 @@
     </node>
 
     <test pkg="multi_agent_plan" type="ros_testing_agent_planner" test-name="ros_testing_agent_planner" />
+    
   </group>
 
 </launch>

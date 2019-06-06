@@ -11,11 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   geometry_msgs
   std_msgs
+  nav_msgs
   message_generation
   std_srvs
   visualization_msgs
   tf2
   tf2_ros
+  map_server
+  roslib
 )
 
 ## Specify additional locations of header files
@@ -65,7 +68,7 @@ add_message_files(
   DIRECTORY
   msg
   FILES
-  CurrPose.msg
+  Pose.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -74,7 +77,7 @@ add_service_files(
   srv
   FILES
   GetPlan.srv
-  UpdateGoal.srv
+  Set2DPose.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -124,7 +127,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES multi_agent_plan
- CATKIN_DEPENDS roscpp message_runtime message_generation geometry_msgs std_msgs std_srvs visualization_msgs tf2 tf2_ros
+ CATKIN_DEPENDS roscpp message_runtime message_generation geometry_msgs std_msgs std_srvs visualization_msgs tf2 tf2_ros roslib
 #  DEPENDS system_lib
 )
 
@@ -143,7 +146,6 @@ catkin_package(
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 set(multi_agent_node_SRCS
-  src/map.cpp
   src/agent.cpp
   src/agent_node.cpp
   src/agent_node_app.cpp
@@ -155,12 +157,19 @@ set(multi_agent_node_HDRS
 
 set(planner_node_SRCS
   src/manhattan_planner.cpp
-  src/planner_node.cpp
   src/planner_node_app.cpp
-  src/map.cpp
 )
 
 set(planner_node_HDRS
+  include/multi_agent_plan/cell.h
+  include/multi_agent_plan/cell_dfs.h
+  include/multi_agent_plan/cell_dijk.h
+  include/multi_agent_plan/map.h
+  include/multi_agent_plan/planner_2d.h
+  include/multi_agent_plan/det_planner_2d.h
+  include/multi_agent_plan/manhattan_planner.h
+  include/multi_agent_plan/dfs.h
+  include/multi_agent_plan/dijkstra.h
   include/multi_agent_plan/planner_node.h
 )
 
@@ -178,8 +187,8 @@ add_executable(planner_node ${planner_node_SRCS} ${planner_node_HDRS})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(multi_agent_node multi_agent_plan_generate_messages_cpp)
-add_dependencies(planner_node multi_agent_plan_generate_messages_cpp)
+add_dependencies(multi_agent_node ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(planner_node ${PROJECT_NAME}_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(multi_agent_node
@@ -250,14 +259,14 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(ros_testing_agent_planner ${catkin_LIBRARIES})
   add_dependencies(
     ros_testing_agent_planner
-    multi_agent_node
     planner_node
+    multi_agent_node
     ${PROJECT_NAME}_generate_messages_cpp
     ${catkin_EXPORTED_TARGETS}
   )
 
-  # catkin_add_gtest(${PROJECT_NAME}-test test/test_multi_agent_plan.cpp src/manhattan_planner.cpp src/agent.cpp src/map.cpp )
-  # target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES})
+  catkin_add_gtest(${PROJECT_NAME}-test test/test_multi_agent_plan.cpp src/manhattan_planner.cpp )
+  target_link_libraries(${PROJECT_NAME}-test map_server_image_loader ${catkin_LIBRARIES})
 endif()
 
 ## Add folders to be run by python nosetests

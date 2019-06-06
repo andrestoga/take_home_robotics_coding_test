@@ -8,11 +8,13 @@
 #include <geometry_msgs/Pose2D.h>
 #include <gtest/gtest.h>
 #include "multi_agent_plan/GetPlan.h"
-#include "multi_agent_plan/UpdateGoal.h"
-#include "multi_agent_plan/CurrPose.h"
+#include "multi_agent_plan/Set2DPose.h"
+#include "multi_agent_plan/Pose.h"
+#include <memory>
 
 #include <std_msgs/Bool.h>
 
+#define GTEST_COUT std::cerr << "[          ] [ INFO ]"
 
 // helper function to create a geometry_msg::Vector3
 auto createPose2D = [](double x, double y, double theta) {
@@ -23,62 +25,110 @@ auto createPose2D = [](double x, double y, double theta) {
   return v;
 };
 
+void print2DPose( geometry_msgs::Pose2D pose )
+{
+	GTEST_COUT << pose.x << " " << pose.y << " " << pose.theta << std::endl;
+}
+
 class AgentFixture : public ::testing::Test 
 {
 public:
-	AgentFixture()
-	{
-		nh_.reset( new ros::NodeHandle );
-		plan_client_ = nh_->serviceClient<multi_agent_plan::GetPlan>( "/get_plan" );
-		agent_goal_client_ = nh_->serviceClient<multi_agent_plan::UpdateGoal>( "update_goal" );
-		agent_update_pose_client_ = nh_->serviceClient<multi_agent_plan::UpdateGoal>( "update_pose" );
-
-		// setInitPose();
-	}
-
 	std::unique_ptr<ros::NodeHandle> nh_;
 	ros::ServiceClient plan_client_;
 	ros::ServiceClient agent_goal_client_;
 	ros::ServiceClient agent_update_pose_client_;
 
-// private:
-
-// 	void setInitPose()
-// 	{
-// 		multi_agent_plan::UpdateGoal srv_update_pose;
-
-// 		geometry_msgs::Pose2D pose = createPose2D( 0.0, 2.0, 0.0 );
-// 		srv_update_pose.request.new_goal = pose;
-
-// 		if (!agent_update_pose_client_.call( srv_update_pose ))
-// 		{
-// 			ROS_ERROR( "Couldn't call update_pose service" );
-// 		}
-// 	}
+	AgentFixture()
+	{
+		nh_.reset( new ros::NodeHandle );
+		plan_client_ = nh_->serviceClient<multi_agent_plan::GetPlan>( "/get_plan" );
+		agent_goal_client_ = nh_->serviceClient<multi_agent_plan::Set2DPose>( "update_goal" );
+		agent_update_pose_client_ = nh_->serviceClient<multi_agent_plan::Set2DPose>( "update_pose" );
+	}
 };
-
-TEST_F( AgentFixture, testAgent )
+	
+void updatePoseAgent( geometry_msgs::Pose2D pose, ros::ServiceClient& agent_update_pose_client_, ros::NodeHandle* nh_ )
 {
-	bool exists_agent_update( agent_update_pose_client_.waitForExistence( ros::Duration( 1 ) ) );
-	ASSERT_TRUE( exists_agent_update );
+	multi_agent_plan::Set2DPose srv_update_pose;
+	srv_update_pose.request.pose = pose;
 
-	multi_agent_plan::UpdateGoal srv_update_pose;
-
-	geometry_msgs::Pose2D pose = createPose2D( 0.0, 2.0, 0.0 );
-	srv_update_pose.request.new_goal = pose;
-
-	if (!agent_update_pose_client_.call( srv_update_pose ))
+	if ( !agent_update_pose_client_.call( srv_update_pose ) )
 	{
 		ADD_FAILURE();
 	}
 
+	geometry_msgs::Pose2D agnt_pose;
+	bool is_pose_received = false;
+
+	auto sub_pose = nh_->subscribe<multi_agent_plan::Pose>(
+		"agent_feedback", 1, [&agnt_pose, &is_pose_received](const multi_agent_plan::Pose::ConstPtr& msg)
+	{
+		agnt_pose.x = msg->pose.x;
+		agnt_pose.y = msg->pose.y;
+		agnt_pose.theta = msg->pose.theta;
+		is_pose_received = true;
+	});
+
+	while( !is_pose_received )
+		ros::spinOnce();
+
+	// print2DPose( agnt_pose );
+}
+
+TEST_F( AgentFixture, testAgentInvalidPose )
+{	
+	// Checking the plan client
+	bool exists_plan( plan_client_.waitForExistence( ros::Duration( 1 ) ) );
+	ASSERT_TRUE( exists_plan );
+
+	multi_agent_plan::GetPlan srv_plan;
+
+	srv_plan.request.serial_id = "agent_1";
+	srv_plan.request.goal_pose = createPose2D( 4.0, 6.0, 0.0 );
+
+	// Checking the pose client
+	bool exists_agent_update( agent_update_pose_client_.waitForExistence( ros::Duration( 1 ) ) );
+	ASSERT_TRUE( exists_agent_update );
+
+	updatePoseAgent( createPose2D( -1.0, 0.0, 0.0 ), agent_update_pose_client_, nh_.get() );
+
+	// // Calling for a plan. It should fail because the initial pose is invalid
+	if ( plan_client_.call( srv_plan ) )
+	{
+		ADD_FAILURE();
+	}
+
+	updatePoseAgent( createPose2D( 0.0, -1.0, 0.0 ), agent_update_pose_client_, nh_.get() );
+
+	// Calling for a plan. It should fail because the initial pose is invalid
+	if ( plan_client_.call( srv_plan ) )
+	{
+		ADD_FAILURE();
+	}
+
+	updatePoseAgent( createPose2D( 0.0, 0.0, 4.0 ), agent_update_pose_client_, nh_.get() );
+
+	// Calling for a plan. It should fail because the initial pose is invalid
+	if ( plan_client_.call( srv_plan ) )
+	{
+		ADD_FAILURE();
+	}
+}
+
+TEST_F( AgentFixture, testAgentPoseGoal )
+{
+	bool exists_agent_update( agent_update_pose_client_.waitForExistence( ros::Duration( 1 ) ) );
+	ASSERT_TRUE( exists_agent_update );
+
+	updatePoseAgent( createPose2D( 0.0, 2.0, 0.0 ), agent_update_pose_client_, nh_.get() );
+
 	bool exists_agent_goal( agent_goal_client_.waitForExistence( ros::Duration( 1 ) ) );
 	ASSERT_TRUE( exists_agent_goal );
 
-	multi_agent_plan::UpdateGoal srv_agent_goal;
+	multi_agent_plan::Set2DPose srv_agent_goal;
 
-	geometry_msgs::Pose2D goal = createPose2D( 4.0, 6.0, 0.0 );
-	srv_agent_goal.request.new_goal = goal;
+	geometry_msgs::Pose2D goal = createPose2D( 4.0, 5.0, 0.0 );
+	srv_agent_goal.request.pose = goal;
 
 	if (!agent_goal_client_.call( srv_agent_goal ))
 	{
@@ -92,8 +142,8 @@ TEST_F( AgentFixture, testAgent )
 	bool is_pose_received = false;
 	bool is_moving = true;
 
-	auto sub_pose = nh_->subscribe<multi_agent_plan::CurrPose>(
-		"agent_feedback", 1, [&agnt_pose, &is_pose_received](const multi_agent_plan::CurrPose::ConstPtr& msg)
+	auto sub_pose = nh_->subscribe<multi_agent_plan::Pose>(
+		"agent_feedback", 1, [&agnt_pose, &is_pose_received](const multi_agent_plan::Pose::ConstPtr& msg)
 	{
 		agnt_pose.x = msg->pose.x;
 		agnt_pose.y = msg->pose.y;
@@ -115,20 +165,12 @@ TEST_F( AgentFixture, testAgent )
 	EXPECT_EQ( goal.theta, agnt_pose.theta );
 }
 
-TEST_F( AgentFixture, testPlanner )
+TEST_F( AgentFixture, testSrvPlanner )
 {
 	bool exists_agent_update( agent_update_pose_client_.waitForExistence( ros::Duration( 1 ) ) );
 	ASSERT_TRUE( exists_agent_update );
 
-	multi_agent_plan::UpdateGoal srv_update_pose;
-
-	geometry_msgs::Pose2D pose = createPose2D( 0.0, 2.0, 0.0 );
-	srv_update_pose.request.new_goal = pose;
-
-	if (!agent_update_pose_client_.call( srv_update_pose ))
-	{
-		ADD_FAILURE();
-	}
+	updatePoseAgent( createPose2D( 0.0, 2.0, 0.0 ), agent_update_pose_client_, nh_.get() );
 
 	bool exists_agent( agent_goal_client_.waitForExistence( ros::Duration( 1 ) ) );
 	ASSERT_TRUE( exists_agent );

@@ -24,10 +24,15 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "agent_node_app");
   ros::NodeHandle n;
 
-  // Creating more threads to keep publishing an agent pose when one thread is busy updating its goal.
-  ros::AsyncSpinner spinner(2);
+  // if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
+  // {
+  //   ros::console::notifyLoggerLevelsChanged();
+  // }
 
-  ros::Rate loop_rate(30);
+  // Creating more threads to keep publishing an agent pose when one thread is busy updating its goal.
+  ros::AsyncSpinner spinner(4);
+
+  ros::Rate loop_rate(60);
 
   // Starting threads.
   spinner.start();

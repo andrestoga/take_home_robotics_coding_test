@@ -5,13 +5,15 @@
 * @Last Modified time: 2019-03-01 22:13:43
 */
 
-#include "multi_agent_plan/manhattan_planner.hpp"
+#include "multi_agent_plan/manhattan_planner.h"
+#include <numeric>
 
 namespace multi_agent_plan
 {
-	ManhattanPlanner::ManhattanPlanner(const Map& grid)
-	: Planner2D(grid)
+	ManhattanPlanner::ManhattanPlanner( int width, int height )
+	: Planner2D( width, height )
 	{
+
 	}
 
 	std::vector<geometry_msgs::Pose2D> ManhattanPlanner::pathPlanning( geometry_msgs::Pose2D start_pose, geometry_msgs::Pose2D goal )
