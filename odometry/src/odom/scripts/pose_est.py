@@ -1,3 +1,16 @@
+# Instructions
+
+# Get the ticks of the encoders from topics
+# the encoders provide absolute positions in units of 'ticks' provided on topics for each wheel (encoders/left_wheel and encoders/right_wheel) of type std_msgs/Int64. The data range of the encoder is [0 - 16777216], with the value wrapping between the min and max in the case of overflow / underflow.
+# 
+# Get from ROS parameters
+# the ticks-per-meter calibration of each wheel
+# the distance between the center of the two wheels
+# fixed frequency of the calculation of the odometry specified as a ROS parameter
+# 
+# Publish to a topic
+# the x, y position of the robot, the heading, the instantaneous speed of the robot and the instantaneous rotational speed of the robot should be reported on a topic with messages of type nav_msgs/Odometry
+
 #!/usr/bin/env python
 import numpy as np
 import math
@@ -12,6 +25,12 @@ import message_filters
 from nav_msgs.msg import Odometry
 import tf2_ros
 
+class Encoder:
+    """docstring for Encoder"""
+    def __init__(self, prev_ticks=0, ticks=0):
+        self.prev_ticks = 0
+        self.ticks = 0
+
 class Odom:
     """docstring for Odom"""
     def __init__(self, min_ticks, max_ticks, ticks_per_meter, base_width):
@@ -20,25 +39,34 @@ class Odom:
         self.x = 0
         self.y = 0
         self.theta = 0
-        self.left_ticks = 0
-        self.right_ticks = 0
         self.ticks_per_meter = ticks_per_meter
         self.base_width = base_width
         self.inst_speed = 0
         self.inst_rot_speed = 0
 
+        self.encoder_left = Encoder()
+        self.encoder_right = Encoder()
+
     def update(self, left_ticks, right_ticks, dt):
 
-        left_ticks = ticksPreprocessing( left_ticks )
-        right_ticks = ticksPreprocessing( right_ticks )
+        self.encoder_left.ticks = left_ticks
+        self.encoder_right.ticks = right_ticks
 
-        delta_left = left_ticks - self.left_ticks
-        delta_right = right_ticks - self.right_ticks
+        encoders = [self.encoder_left, self.encoder_right]
 
-        distance_left_wheel = delta_right / self.ticks_per_meter
-        distance_right_wheel = delta_left / self.ticks_per_meter
+        for enc in encoders:
 
-        heading_increment = ( distance_right_wheel - distance_left_wheel ) / self.base_width
+            if check_overflow(enc.prev_ticks, enc.ticks):
+               enc.ticks = (max_ticks - enc.prev_ticks) + enc.ticks
+            elif check_underflow(enc.prev_ticks, enc.ticks):
+                enc.ticks = -1 * ((max_ticks - enc.ticks) + enc.prev_ticks)
+            else:
+                enc.ticks = enc.ticks - enc.prev_ticks
+
+        distance_left_wheel = self.encoder_left.ticks / self.ticks_per_meter
+        distance_right_wheel = self.encoder_right.ticks / self.ticks_per_meter
+
+        heading_increment = (distance_right_wheel - distance_left_wheel) / self.base_width
 
         x_increment = cos( heading_increment ) * ( distance_left_wheel + distance_right_wheel ) / 2
         y_increment = -sin( heading_increment ) * ( distance_left_wheel + distance_right_wheel ) / 2
@@ -52,37 +80,33 @@ class Odom:
 
         self.x = x_fixed_increment + self.x
         self.y = y_fixed_increment + self.y
-        self.theta = heading_increment + self.theta
-        self.theta = wrap_theta( self.theta )
+        self.theta = wrap_theta(heading_increment + self.theta)
 
-        # self.inst_speed = ( omega_left + omega_right ) / 2
-        self.inst_speed = ( distance_left_wheel + distance_right_wheel ) / 2
-        # self.inst_rot_speed = ( omega_left - omega_right ) / self.base_width
-        self.inst_rot_speed = ( distance_left_wheel - distance_right_wheel ) / self.base_width
+        self.inst_speed = ( omega_left + omega_right ) / 2
+        # self.inst_speed = ( distance_left_wheel + distance_right_wheel ) / 2
+        self.inst_rot_speed = ( omega_left - omega_right ) / self.base_width
+        # self.inst_rot_speed = ( distance_left_wheel - distance_right_wheel ) / self.base_width
 
-        self.left_ticks = left_ticks
-        self.right_ticks = right_ticks
+        self.encoder_left.prev_ticks = self.encoder_left.ticks
+        self.encoder_right.prev_ticks = self.encoder_right.ticks
 
-    def ticks_preprocessing(self, ticks):
+    def check_underflow(self, prev_ticks, ticks):
+        if prev_ticks < ticks:
+            return True
+        return False
 
-        if ( ticks < self.min_ticks )
-        {
-            ticks = self.min_ticks;
-        }
+    def check_overflow(self, prev_ticks, ticks):
+        if prev_ticks > ticks:
+            return True
+        return False
 
-        if ( ticks > self.max_ticks )
-        {
-            ticks = self.max_ticks
-        }
-
-        return ticks
-
+    #   Wrapping from 0 to 180, -180 to 0
     def wrap_theta(self, theta):
         if theta > math.pi:
-            theta = -math.pi + theta
-        elif theta < -math.pi
-            theta = math.pi + theta
-        return theta
+            theta += -math.pi * 2
+        elif theta < -math.pi:
+            theta += math.pi * 2
+        return theta        
 
 class OdomNode:
     """docstring for OdomNode"""
